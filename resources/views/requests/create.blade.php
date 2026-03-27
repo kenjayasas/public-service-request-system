@@ -76,11 +76,11 @@
                                 </label>
                                 <div class="input-wrapper">
                                     <i class="fas fa-heading input-icon"></i>
-                                    <input type="text" 
-                                           class="form-control @error('title') is-invalid @enderror" 
-                                           id="title" 
-                                           name="title" 
-                                           value="{{ old('title') }}" 
+                                    <input type="text"
+                                           class="form-control @error('title') is-invalid @enderror"
+                                           id="title"
+                                           name="title"
+                                           value="{{ old('title') }}"
                                            placeholder="e.g., Pothole on Main Street"
                                            required
                                            autofocus>
@@ -105,9 +105,9 @@
                                 </label>
                                 <div class="select-wrapper">
                                     <i class="fas fa-chevron-down select-icon"></i>
-                                    <select class="form-select @error('category_id') is-invalid @enderror" 
-                                            id="category_id" 
-                                            name="category_id" 
+                                    <select class="form-select @error('category_id') is-invalid @enderror"
+                                            id="category_id"
+                                            name="category_id"
                                             required>
                                         <option value="" disabled selected>Select a category</option>
                                         @foreach($categories as $category)
@@ -134,9 +134,9 @@
                                 </label>
                                 <div class="textarea-wrapper">
                                     <i class="fas fa-align-left textarea-icon"></i>
-                                    <textarea class="form-control @error('description') is-invalid @enderror" 
-                                              id="description" 
-                                              name="description" 
+                                    <textarea class="form-control @error('description') is-invalid @enderror"
+                                              id="description"
+                                              name="description"
                                               rows="5"
                                               placeholder="Please provide detailed information about your request..."
                                               required>{{ old('description') }}</textarea>
@@ -166,11 +166,11 @@
                                 </label>
                                 <div class="input-wrapper">
                                     <i class="fas fa-map-marker-alt input-icon"></i>
-                                    <input type="text" 
-                                           class="form-control @error('location') is-invalid @enderror" 
-                                           id="location" 
-                                           name="location" 
-                                           value="{{ old('location') }}" 
+                                    <input type="text"
+                                           class="form-control @error('location') is-invalid @enderror"
+                                           id="location"
+                                           name="location"
+                                           value="{{ old('location') }}"
                                            placeholder="e.g., 123 Main Street, City, State"
                                            required>
                                 </div>
@@ -202,15 +202,15 @@
                                     Upload Image
                                     <span class="optional-badge">Optional</span>
                                 </label>
-                                
+
                                 <div class="upload-area" id="uploadArea">
                                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
                                     <h6>Drag & Drop or Click to Upload</h6>
                                     <p class="text-secondary">Supported formats: JPEG, PNG, JPG, GIF (Max 2MB)</p>
-                                    <input type="file" 
-                                           class="file-input" 
-                                           id="image" 
-                                           name="image" 
+                                    <input type="file"
+                                           class="file-input"
+                                           id="image"
+                                           name="image"
                                            accept="image/*"
                                            style="display: none;">
                                     <button type="button" class="btn-upload" id="uploadBtn">
@@ -290,12 +290,12 @@
                                 <i class="fas fa-arrow-left me-2"></i>
                                 Previous
                             </button>
-                            
+
                             <button type="button" class="btn-next" id="nextBtn" onclick="nextStep()">
                                 Next Step
                                 <i class="fas fa-arrow-right ms-2"></i>
                             </button>
-                            
+
                             <button type="submit" class="btn-submit" id="submitBtn" style="display: none;">
                                 <i class="fas fa-paper-plane me-2"></i>
                                 Submit Request
@@ -332,7 +332,50 @@
 
 @push('styles')
 <style>
-    /* Page Header */
+    /* =============================================
+       TEXT VISIBILITY FIX
+       ============================================= */
+    .form-control,
+    .form-select {
+        color: #f1f5f9 !important;
+        background-color: #1e2435 !important;
+        -webkit-text-fill-color: #f1f5f9 !important;
+    }
+
+    .form-control::placeholder {
+        color: rgba(148, 163, 184, 0.6) !important;
+        -webkit-text-fill-color: rgba(148, 163, 184, 0.6) !important;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        color: #f1f5f9 !important;
+        background-color: #1e2435 !important;
+        -webkit-text-fill-color: #f1f5f9 !important;
+    }
+
+    /* Fix autofill background overriding text color */
+    .form-control:-webkit-autofill,
+    .form-control:-webkit-autofill:hover,
+    .form-control:-webkit-autofill:focus {
+        -webkit-text-fill-color: #f1f5f9 !important;
+        -webkit-box-shadow: 0 0 0px 1000px #1e2435 inset !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    .form-select option {
+        background-color: #1e2435;
+        color: #f1f5f9;
+    }
+
+    textarea.form-control {
+        color: #f1f5f9 !important;
+        -webkit-text-fill-color: #f1f5f9 !important;
+    }
+
+    /* =============================================
+       PAGE HEADER
+       ============================================= */
     .page-header {
         background: linear-gradient(135deg, var(--dark-card) 0%, var(--dark-secondary) 100%);
         border: 1px solid var(--border-dark);
@@ -375,7 +418,9 @@
         margin-bottom: 0;
     }
 
-    /* Progress Steps */
+    /* =============================================
+       PROGRESS STEPS
+       ============================================= */
     .progress-steps {
         display: flex;
         align-items: center;
@@ -433,7 +478,9 @@
         margin: 0 10px;
     }
 
-    /* Form Card */
+    /* =============================================
+       FORM CARD
+       ============================================= */
     .form-card {
         background: var(--dark-card);
         border: 1px solid var(--border-dark);
@@ -478,7 +525,9 @@
         padding: 2rem;
     }
 
-    /* Form Elements */
+    /* =============================================
+       FORM ELEMENTS
+       ============================================= */
     .form-group {
         position: relative;
     }
@@ -544,10 +593,8 @@
     .form-control, .form-select {
         width: 100%;
         padding: 0.875rem 1rem 0.875rem 2.75rem;
-        background-color: var(--input-bg);
         border: 2px solid var(--input-border);
         border-radius: 12px;
-        color: var(--text-primary);
         font-size: 1rem;
         transition: all 0.3s ease;
     }
@@ -565,13 +612,11 @@
     .form-control:focus, .form-select:focus {
         outline: none;
         border-color: var(--orange-primary);
-        background-color: var(--dark-card);
         box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
     }
 
     .form-control:focus + .input-icon,
-    .form-control:focus ~ .textarea-icon,
-    .form-select:focus + .select-icon {
+    .form-control:focus ~ .textarea-icon {
         color: var(--orange-primary);
     }
 
@@ -583,7 +628,9 @@
         border-radius: 20px;
     }
 
-    /* Upload Area */
+    /* =============================================
+       UPLOAD AREA
+       ============================================= */
     .upload-area {
         background: rgba(249, 115, 22, 0.05);
         border: 2px dashed var(--border-dark);
@@ -633,7 +680,9 @@
         box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3);
     }
 
-    /* Image Preview */
+    /* =============================================
+       IMAGE PREVIEW
+       ============================================= */
     .image-preview {
         position: relative;
         margin-top: 1rem;
@@ -670,7 +719,9 @@
         transform: scale(1.1);
     }
 
-    /* Upload Tips */
+    /* =============================================
+       UPLOAD TIPS
+       ============================================= */
     .upload-tips {
         background: rgba(249, 115, 22, 0.05);
         border: 1px solid rgba(249, 115, 22, 0.1);
@@ -701,7 +752,9 @@
         color: #10b981;
     }
 
-    /* Review Card */
+    /* =============================================
+       REVIEW CARD
+       ============================================= */
     .review-card {
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid var(--border-dark);
@@ -758,7 +811,9 @@
         align-items: center;
     }
 
-    /* Form Navigation */
+    /* =============================================
+       FORM NAVIGATION
+       ============================================= */
     .form-navigation {
         display: flex;
         gap: 1rem;
@@ -821,7 +876,9 @@
         box-shadow: 0 8px 15px rgba(16, 185, 129, 0.4);
     }
 
-    /* Error Message */
+    /* =============================================
+       ERROR MESSAGE
+       ============================================= */
     .error-message {
         background: rgba(239, 68, 68, 0.1);
         border: 1px solid #ef4444;
@@ -842,7 +899,9 @@
         20%, 40%, 60%, 80% { transform: translateX(5px); }
     }
 
-    /* Help Card */
+    /* =============================================
+       HELP CARD
+       ============================================= */
     .help-card {
         background: var(--dark-card);
         border: 1px solid var(--border-dark);
@@ -905,7 +964,9 @@
         color: white;
     }
 
-    /* Map Preview */
+    /* =============================================
+       MAP PREVIEW
+       ============================================= */
     .map-preview {
         border: 1px solid var(--border-dark);
         border-radius: 12px;
@@ -928,52 +989,81 @@
         color: var(--orange-primary);
     }
 
-    /* Responsive */
+    /* =============================================
+       AUTO SAVE NOTIFICATION
+       ============================================= */
+    .auto-save-notification {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: rgba(16, 185, 129, 0.9);
+        color: white;
+        padding: 0.75rem 1.25rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        animation: slideInUp 0.3s ease;
+        z-index: 9999;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    @keyframes slideInUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to   { transform: translateY(0);   opacity: 1; }
+    }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
     @media (max-width: 768px) {
         .progress-steps {
             flex-direction: column;
             gap: 1rem;
         }
-        
+
         .step {
             flex-direction: row;
             width: 100%;
             gap: 1rem;
         }
-        
+
         .step-line {
             display: none;
         }
-        
+
         .form-card-header {
             flex-direction: column;
             align-items: start;
             gap: 1rem;
         }
-        
+
         .header-badge {
             width: 100%;
         }
-        
+
         .form-navigation {
             flex-direction: column;
         }
-        
+
         .help-card {
             flex-direction: column;
             align-items: center;
             text-align: center;
         }
-        
+
         .help-links {
             justify-content: center;
         }
-        
+
         .review-item {
             flex-direction: column;
             gap: 0.5rem;
         }
-        
+
         .review-label {
             width: auto;
         }
@@ -1001,14 +1091,13 @@
             } else {
                 step.classList.remove('active');
             }
-            
+
             const stepContent = document.getElementById(`step${i}`);
             if (stepContent) {
                 stepContent.style.display = i === currentStep ? 'block' : 'none';
             }
         }
 
-        // Update navigation buttons
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const submitBtn = document.getElementById('submitBtn');
@@ -1048,18 +1137,18 @@
     function validateStep(step) {
         switch(step) {
             case 1:
-                const title = document.getElementById('title').value;
+                const title = document.getElementById('title').value.trim();
                 const category = document.getElementById('category_id').value;
-                const description = document.getElementById('description').value;
-                
+                const description = document.getElementById('description').value.trim();
+
                 if (!title || !category || !description) {
                     alert('Please fill in all required fields in Step 1');
                     return false;
                 }
                 break;
-                
+
             case 2:
-                const location = document.getElementById('location').value;
+                const location = document.getElementById('location').value.trim();
                 if (!location) {
                     alert('Please enter a location in Step 2');
                     return false;
@@ -1071,56 +1160,50 @@
 
     // Update review section
     function updateReview() {
-        document.getElementById('reviewTitle').textContent = 
+        document.getElementById('reviewTitle').textContent =
             document.getElementById('title').value || '-';
-            
+
         const categorySelect = document.getElementById('category_id');
         const categoryText = categorySelect.options[categorySelect.selectedIndex]?.text || '-';
-        document.getElementById('reviewCategory').textContent = categoryText;
-        
-        document.getElementById('reviewDescription').textContent = 
+        document.getElementById('reviewCategory').textContent =
+            categorySelect.value ? categoryText : '-';
+
+        document.getElementById('reviewDescription').textContent =
             document.getElementById('description').value || '-';
-            
-        document.getElementById('reviewLocation').textContent = 
+
+        document.getElementById('reviewLocation').textContent =
             document.getElementById('location').value || '-';
     }
 
     // Character counter
-    const description = document.getElementById('description');
+    const descriptionEl = document.getElementById('description');
     const descCount = document.getElementById('descCount');
-    
-    description.addEventListener('input', function() {
+
+    descriptionEl.addEventListener('input', function() {
         const length = this.value.length;
         descCount.textContent = `${length}/500`;
-        
+
         if (length > 500) {
             this.value = this.value.substring(0, 500);
         }
-        
+
         updateReview();
     });
 
     // Image upload handling
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('image');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
+    const uploadArea    = document.getElementById('uploadArea');
+    const fileInput     = document.getElementById('image');
+    const uploadBtn     = document.getElementById('uploadBtn');
+    const imagePreview  = document.getElementById('imagePreview');
+    const previewImg    = document.getElementById('previewImg');
     const removeImageBtn = document.getElementById('removeImage');
 
-    // Click upload button
-    uploadBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
+    uploadBtn.addEventListener('click', () => fileInput.click());
 
-    // Click upload area
     uploadArea.addEventListener('click', (e) => {
-        if (e.target !== uploadBtn) {
-            fileInput.click();
-        }
+        if (e.target !== uploadBtn) fileInput.click();
     });
 
-    // Drag and drop
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadArea.classList.add('dragover');
@@ -1133,7 +1216,6 @@
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('dragover');
-        
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             fileInput.files = files;
@@ -1141,25 +1223,21 @@
         }
     });
 
-    // File input change
     fileInput.addEventListener('change', function() {
         if (this.files && this.files[0]) {
             handleImageUpload(this.files[0]);
         }
     });
 
-    // Handle image upload
     function handleImageUpload(file) {
         if (!file.type.match('image.*')) {
             alert('Please upload an image file');
             return;
         }
-
         if (file.size > 2 * 1024 * 1024) {
             alert('File size must be less than 2MB');
             return;
         }
-
         const reader = new FileReader();
         reader.onload = function(e) {
             previewImg.src = e.target.result;
@@ -1170,7 +1248,6 @@
         reader.readAsDataURL(file);
     }
 
-    // Remove image
     removeImageBtn.addEventListener('click', function() {
         fileInput.value = '';
         uploadArea.style.display = 'block';
@@ -1178,36 +1255,27 @@
         document.getElementById('reviewImage').textContent = 'No image uploaded';
     });
 
-    // Auto-save draft
+    // Auto-save draft notification
     let autoSaveTimer;
     const formInputs = document.querySelectorAll('#requestForm input, #requestForm select, #requestForm textarea');
-    
+
     formInputs.forEach(input => {
         input.addEventListener('input', function() {
             clearTimeout(autoSaveTimer);
             autoSaveTimer = setTimeout(function() {
-                // Here you can implement auto-save functionality
-                console.log('Auto-save triggered');
-                
-                // Show notification
                 const notification = document.createElement('div');
                 notification.className = 'auto-save-notification';
                 notification.innerHTML = '<i class="fas fa-check-circle"></i> Draft saved';
                 document.body.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.remove();
-                }, 2000);
+                setTimeout(() => notification.remove(), 2000);
             }, 2000);
         });
     });
 
-    // Warn before leaving
+    // Warn before leaving with unsaved changes
     let formChanged = false;
     formInputs.forEach(input => {
-        input.addEventListener('input', () => {
-            formChanged = true;
-        });
+        input.addEventListener('input', () => { formChanged = true; });
     });
 
     window.addEventListener('beforeunload', function(e) {
@@ -1221,12 +1289,13 @@
         formChanged = false;
     });
 
-    // Initialize on load
-    initForm();
-
-    // Update review on any input
+    // Update review on any input change
     formInputs.forEach(input => {
         input.addEventListener('input', updateReview);
+        input.addEventListener('change', updateReview);
     });
+
+    // Initialize on load
+    initForm();
 </script>
 @endpush
