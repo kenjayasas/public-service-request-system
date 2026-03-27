@@ -26,16 +26,20 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone_local' => ['nullable', 'regex:/^9[0-9]{9}$/'],
             'address' => ['nullable', 'string', 'max:500'],
+        ], [
+            'phone_local.regex' => 'Phone number must be 10 digits and start with 9 (e.g. 9XXXXXXXXX).',
         ]);
+
+        $phone = $request->phone_local ? '+63' . $request->phone_local : null;
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'citizen', // Default role for new registrations
-            'phone' => $request->phone,
+            'phone' => $phone,
             'address' => $request->address,
         ]);
 

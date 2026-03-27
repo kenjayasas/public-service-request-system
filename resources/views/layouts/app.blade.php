@@ -479,38 +479,6 @@
             background: var(--orange-primary);
         }
 
-        /* Tooltip Styles */
-        [data-tooltip] {
-            position: relative;
-            cursor: pointer;
-        }
-
-        [data-tooltip]:before {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 0.5rem 1rem;
-            background: var(--dark-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border-dark);
-            border-radius: 8px;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-        }
-
-        [data-tooltip]:hover:before {
-            opacity: 1;
-            visibility: visible;
-            bottom: 150%;
-        }
-
         /* Animation for new messages */
         @keyframes newMessage {
             0%, 100% {

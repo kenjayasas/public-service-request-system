@@ -710,7 +710,7 @@
                                 required 
                                 autofocus 
                                 autocomplete="name"
-                                placeholder="John Doe"
+                                placeholder="Enter your name"
                             >
                         </div>
                         @error('name')
@@ -757,17 +757,42 @@
                             <i class="fas fa-phone"></i>
                             Phone Number (Optional)
                         </label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-phone input-icon"></i>
-                            <input 
-                                id="phone" 
-                                type="text" 
-                                class="form-control" 
-                                name="phone" 
-                                value="{{ old('phone') }}" 
-                                placeholder="+1 (555) 123-4567"
+                        <div class="input-wrapper" style="display: flex; gap: 0;">
+                            <span style="
+                                display: flex;
+                                align-items: center;
+                                padding: 0 0.75rem;
+                                background: rgba(249,115,22,0.1);
+                                border: 1px solid var(--input-border, #4a5568);
+                                border-right: none;
+                                border-radius: 10px 0 0 10px;
+                                color: #f97316;
+                                font-weight: 600;
+                                white-space: nowrap;
+                                font-size: 0.95rem;
+                            ">+63</span>
+                            <input
+                                id="phone"
+                                type="text"
+                                class="form-control"
+                                name="phone_local"
+                                value="{{ old('phone_local') }}"
+                                placeholder="9XXXXXXXXX"
+                                maxlength="10"
+                                inputmode="numeric"
+                                pattern="9[0-9]{9}"
+                                style="border-radius: 0 10px 10px 0;"
+                                oninput="this.value=this.value.replace(/[^0-9]/g,''); validatePhone(this);"
+                                onblur="validatePhone(this)"
                             >
                         </div>
+                        <span id="phone-error" style="color:#ef4444; font-size:0.8rem; display:none;">Phone number must start with 9 (e.g. 9XXXXXXXXX).</span>
+                        <small style="color: var(--text-muted, #6b7280); font-size: 0.78rem; margin-top: 0.3rem; display: block;">
+                            Enter your 10-digit number starting with 9 (e.g. 9XXXXXXXXX)
+                        </small>
+                        @error('phone_local')
+                            <span style="color:#ef4444; font-size:0.8rem;">{{ $message }}</span>
+                        @enderror
                     </div>
 
                     <!-- Address -->
@@ -1164,6 +1189,18 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
             submitBtn.disabled = true;
         });
+
+        // Phone validation
+        function validatePhone(input) {
+            const error = document.getElementById('phone-error');
+            if (input.value.length > 0 && !input.value.startsWith('9')) {
+                error.style.display = 'block';
+                input.style.borderColor = '#ef4444';
+            } else {
+                error.style.display = 'none';
+                input.style.borderColor = '';
+            }
+        }
 
         // Initialize on page load
         initForm();

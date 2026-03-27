@@ -184,12 +184,30 @@
                                     Provide the exact location where this issue needs attention
                                 </small>
 
-                                <!-- Map Preview (Optional) -->
-                                <div class="map-preview mt-3" id="mapPreview" style="display: none;">
-                                    <div class="map-placeholder">
-                                        <i class="fas fa-map"></i>
-                                        <span>Location preview will appear here</span>
+                                <!-- Hidden lat/lng fields -->
+                                <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+                                <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
+
+                                <!-- Google Map Picker -->
+                                <div class="mt-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <small style="color: var(--text-secondary); font-weight: 600;">
+                                            <i class="fas fa-map-marked-alt me-1" style="color: #f97316;"></i>
+                                            Or pin your location on the map
+                                        </small>
+                                        <button type="button" id="useMyLocationBtn"
+                                            style="background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.3);
+                                                   color: #f97316; border-radius: 8px; padding: 0.3rem 0.75rem;
+                                                   font-size: 0.8rem; cursor: pointer; transition: all 0.2s;">
+                                            <i class="fas fa-crosshairs me-1"></i> Use My Location
+                                        </button>
                                     </div>
+                                    <div id="mapPicker" style="width:100%; height:320px; border-radius:12px;
+                                         border: 1px solid var(--border-dark, #2d3748); overflow:hidden;
+                                         background: #1a1e24;"></div>
+                                    <small id="mapHint" style="color: var(--text-muted, #6b7280); font-size:0.75rem; margin-top:0.3rem; display:block;">
+                                        <i class="fas fa-info-circle me-1"></i>Click anywhere on the map to set your location. The address will fill in automatically.
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -1298,4 +1316,121 @@
     // Initialize on load
     initForm();
 </script>
+
+<!-- Google Maps -->
+<script>
+    let map, marker, geocoder;
+
+    function initMap() {
+        const defaultCenter = { lat: 14.5995, lng: 120.9842 }; // Manila, Philippines
+
+        map = new google.maps.Map(document.getElementById('mapPicker'), {
+            center: defaultCenter,
+            zoom: 13,
+            styles: [
+                { elementType: 'geometry', stylers: [{ color: '#1a1e24' }] },
+                { elementType: 'labels.text.stroke', stylers: [{ color: '#0a0c0f' }] },
+                { elementType: 'labels.text.fill', stylers: [{ color: '#9ca3af' }] },
+                { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2d3748' }] },
+                { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca3af' }] },
+                { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0a0c0f' }] },
+                { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#1e2329' }] },
+                { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2d3748' }] },
+            ],
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: true,
+        });
+
+        geocoder = new google.maps.Geocoder();
+
+        map.addListener('click', function(e) {
+            placeMarker(e.latLng);
+        });
+
+        // If old value exists, geocode it to center map
+        const existingLocation = document.getElementById('location').value;
+        const existingLat = document.getElementById('latitude').value;
+        const existingLng = document.getElementById('longitude').value;
+        if (existingLat && existingLng) {
+            const pos = { lat: parseFloat(existingLat), lng: parseFloat(existingLng) };
+            placeMarkerSilent(pos);
+            map.setCenter(pos);
+            map.setZoom(16);
+        }
+
+        // Use My Location button
+        document.getElementById('useMyLocationBtn').addEventListener('click', function() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+            }
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Locating...';
+            const btn = this;
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const latLng = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+                map.setCenter(latLng);
+                map.setZoom(17);
+                placeMarker(latLng);
+                btn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Use My Location';
+            }, function() {
+                alert('Unable to get your location. Please allow location access.');
+                btn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Use My Location';
+            });
+        });
+    }
+
+    function placeMarker(latLng) {
+        if (marker) marker.setMap(null);
+        marker = new google.maps.Marker({
+            position: latLng,
+            map: map,
+            draggable: true,
+            animation: google.maps.Animation.DROP,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#f97316',
+                fillOpacity: 1,
+                strokeColor: '#fff',
+                strokeWeight: 2,
+            }
+        });
+
+        document.getElementById('latitude').value = latLng.lat();
+        document.getElementById('longitude').value = latLng.lng();
+
+        geocoder.geocode({ location: latLng }, function(results, status) {
+            if (status === 'OK' && results[0]) {
+                document.getElementById('location').value = results[0].formatted_address;
+                document.getElementById('reviewLocation').textContent = results[0].formatted_address;
+            }
+        });
+
+        marker.addListener('dragend', function(e) {
+            placeMarker(e.latLng);
+        });
+    }
+
+    function placeMarkerSilent(pos) {
+        if (marker) marker.setMap(null);
+        marker = new google.maps.Marker({
+            position: pos,
+            map: map,
+            draggable: true,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#f97316',
+                fillOpacity: 1,
+                strokeColor: '#fff',
+                strokeWeight: 2,
+            }
+        });
+        marker.addListener('dragend', function(e) {
+            placeMarker(e.latLng);
+        });
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
 @endpush
