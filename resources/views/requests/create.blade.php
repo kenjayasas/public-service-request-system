@@ -1319,7 +1319,7 @@
 
 <!-- Google Maps -->
 <script>
-    let map, marker, geocoder;
+    let map, marker, geocoder, geocodeTimer;
 
     function initMap() {
         const defaultCenter = { lat: 14.5995, lng: 120.9842 }; // Manila, Philippines
@@ -1345,6 +1345,7 @@
         geocoder = new google.maps.Geocoder();
 
         map.addListener('click', function(e) {
+            clearTimeout(geocodeTimer); // cancel any pending text-input geocode
             placeMarker(e.latLng);
         });
 
@@ -1378,6 +1379,25 @@
                 btn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Use My Location';
             });
         });
+
+        // Sync manual text input → map (debounced)
+        document.getElementById('location').addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(geocodeTimer);
+            if (!query) return;
+            geocodeTimer = setTimeout(function() {
+                geocoder.geocode({ address: query }, function(results, status) {
+                    if (status === 'OK' && results[0]) {
+                        const latLng = results[0].geometry.location;
+                        map.setCenter(latLng);
+                        map.setZoom(16);
+                        placeMarkerSilent(latLng);
+                        document.getElementById('latitude').value = latLng.lat();
+                        document.getElementById('longitude').value = latLng.lng();
+                    }
+                });
+            }, 800);
+        });
     }
 
     function placeMarker(latLng) {
@@ -1400,14 +1420,40 @@
         document.getElementById('latitude').value = latLng.lat();
         document.getElementById('longitude').value = latLng.lng();
 
+        // Show loading state in the input
+        const locationInput = document.getElementById('location');
+        locationInput.placeholder = 'Getting address...';
+        locationInput.style.opacity = '0.6';
+
         geocoder.geocode({ location: latLng }, function(results, status) {
-            if (status === 'OK' && results[0]) {
-                document.getElementById('location').value = results[0].formatted_address;
-                document.getElementById('reviewLocation').textContent = results[0].formatted_address;
+            locationInput.style.opacity = '1';
+            locationInput.placeholder = 'e.g., 123 Main Street, Barangay, City';
+
+            if (status === 'OK' && results && results.length > 0) {
+                // Skip Plus Code results, prefer readable street/place addresses
+                const preferred = results.find(function(r) {
+                    return !r.types.includes('plus_code') &&
+                           (r.types.includes('street_address') ||
+                            r.types.includes('premise') ||
+                            r.types.includes('route') ||
+                            r.types.includes('neighborhood') ||
+                            r.types.includes('sublocality') ||
+                            r.types.includes('locality'));
+                });
+                const best = preferred
+                    || results.find(function(r) { return !r.types.includes('plus_code'); })
+                    || results[0];
+
+                locationInput.value = best.formatted_address;
+                document.getElementById('reviewLocation').textContent = best.formatted_address;
+            } else {
+                locationInput.value = '';
+                locationInput.placeholder = 'Address not found. Please type manually.';
             }
         });
 
         marker.addListener('dragend', function(e) {
+            clearTimeout(geocodeTimer);
             placeMarker(e.latLng);
         });
     }
@@ -1432,5 +1478,5 @@
         });
     }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwM-a1ufR8_gO-jlnumgft9P9OIx8g1_0&callback=initMap" async defer></script>
 @endpush
