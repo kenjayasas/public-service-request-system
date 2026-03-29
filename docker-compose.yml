@@ -1,0 +1,67 @@
+services:
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: php_8_3
+    working_dir: /usr/share/nginx/html/public-service-request-system
+    volumes:
+        - .:/usr/share/nginx/html/public-service-request-system
+        - ./php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
+        - ./php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    depends_on:
+      - mysql
+    networks:
+      - laravel_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "8090:80"
+    volumes:
+      - .:/usr/share/nginx/html/public-service-request-system
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - php
+    networks:
+      - laravel_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    ports:
+      - "33069:3306"
+    environment:
+      MYSQL_DATABASE: servicedb
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - laravel_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8091:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ""
+      UPLOAD_LIMIT: 200M
+    depends_on:
+      - mysql
+    networks:
+      - laravel_network
+
+volumes:
+  mysql_data:
+
+networks:
+  laravel_network:
+    driver: bridge
