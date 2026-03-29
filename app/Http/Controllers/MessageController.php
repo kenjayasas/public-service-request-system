@@ -15,44 +15,82 @@ class MessageController extends Controller
     {
         $user = Auth::user();
 
-        $conversations = Message::where('sender_id', $user->id)
+        $messages = Message::where('sender_id', $user->id)
             ->orWhere('receiver_id', $user->id)
             ->with(['sender', 'receiver', 'serviceRequest'])
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->groupBy(function($message) use ($user) {
-                $otherUser = $message->sender_id == $user->id ? $message->receiver : $message->sender;
-                return $otherUser->id . '-' . ($message->service_request_id ?? 'general');
-            });
+            ->get();
+
+        $conversations = $messages->groupBy(function ($message) use ($user) {
+            $otherUser = $message->sender_id == $user->id ? $message->receiver : $message->sender;
+            return $otherUser->id . '-' . ($message->service_request_id ?? 'general');
+        });
+
+        if ($request->expectsJson()) {
+            // Return conversations as JSON: latest message per group
+            $result = $conversations->map(function ($msgs, $key) use ($user) {
+                $latest    = $msgs->first();
+                $otherUser = $latest->sender_id == $user->id ? $latest->receiver : $latest->sender;
+                $unread    = $msgs->where('receiver_id', $user->id)->where('is_read', false)->count();
+                return [
+                    'key'             => $key,
+                    'other_user'      => $otherUser,
+                    'service_request' => $latest->serviceRequest,
+                    'last_message'    => $latest->message,
+                    'last_at'         => $latest->created_at,
+                    'unread_count'    => $unread,
+                ];
+            })->values();
+
+            return response()->json($result);
+        }
 
         return view('messages.index', compact('conversations'));
     }
 
-    public function show(User $user, ServiceRequest $serviceRequest = null)
+    public function show(Request $request, $userId, $serviceRequestId = null)
     {
         $currentUser = Auth::user();
 
-        $messages = Message::where(function($query) use ($currentUser, $user) {
-                $query->where('sender_id', $currentUser->id)
-                    ->where('receiver_id', $user->id);
-            })
-            ->orWhere(function($query) use ($currentUser, $user) {
-                $query->where('sender_id', $user->id)
-                    ->where('receiver_id', $currentUser->id);
-            });
-
-        if ($serviceRequest) {
-            $messages->where('service_request_id', $serviceRequest->id);
+        // Support both User model binding (web) and plain ID (API)
+        if ($userId instanceof User) {
+            $otherUser = $userId;
+        } else {
+            $otherUser = User::findOrFail($userId);
         }
 
-        $messages = $messages->with(['sender', 'receiver'])
+        $query = Message::where(function ($q) use ($currentUser, $otherUser) {
+            $q->where('sender_id', $currentUser->id)
+              ->where('receiver_id', $otherUser->id);
+        })->orWhere(function ($q) use ($currentUser, $otherUser) {
+            $q->where('sender_id', $otherUser->id)
+              ->where('receiver_id', $currentUser->id);
+        });
+
+        if ($serviceRequestId) {
+            $query->where('service_request_id', $serviceRequestId);
+        } elseif ($request->has('service_request_id')) {
+            $query->where('service_request_id', $request->service_request_id);
+        }
+
+        $messages = $query->with(['sender', 'receiver'])
             ->orderBy('created_at', 'asc')
             ->get();
 
         // Mark messages as read
         Message::where('receiver_id', $currentUser->id)
-            ->where('sender_id', $user->id)
+            ->where('sender_id', $otherUser->id)
             ->update(['is_read' => true]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'other_user' => $otherUser,
+                'messages'   => $messages,
+            ]);
+        }
+
+        $user           = $otherUser;
+        $serviceRequest = $serviceRequestId ? ServiceRequest::find($serviceRequestId) : null;
 
         return view('messages.show', compact('messages', 'user', 'serviceRequest'));
     }
@@ -60,8 +98,8 @@ class MessageController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'receiver_id' => 'required|exists:users,id',
-            'message' => 'required|string|max:1000',
+            'receiver_id'        => 'required|exists:users,id',
+            'message'            => 'required|string|max:1000',
             'service_request_id' => 'nullable|exists:service_requests,id',
         ]);
 
@@ -70,19 +108,18 @@ class MessageController extends Controller
         }
 
         $message = Message::create([
-            'sender_id' => Auth::id(),
-            'receiver_id' => $request->receiver_id,
-            'message' => $request->message,
+            'sender_id'          => Auth::id(),
+            'receiver_id'        => $request->receiver_id,
+            'message'            => $request->message,
             'service_request_id' => $request->service_request_id,
         ]);
 
         $message->load('sender');
 
-        if ($request->ajax()) {
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'html' => view('messages.partials.message', compact('message'))->render()
             ]);
         }
 
@@ -91,14 +128,13 @@ class MessageController extends Controller
 
     public function poll(Request $request, User $user)
     {
-        $query = Message::where(function($q) use ($user) {
-                $q->where('sender_id', Auth::id())
-                  ->where('receiver_id', $user->id);
-            })
-            ->orWhere(function($q) use ($user) {
-                $q->where('sender_id', $user->id)
-                  ->where('receiver_id', Auth::id());
-            });
+        $query = Message::where(function ($q) use ($user) {
+            $q->where('sender_id', Auth::id())
+              ->where('receiver_id', $user->id);
+        })->orWhere(function ($q) use ($user) {
+            $q->where('sender_id', $user->id)
+              ->where('receiver_id', Auth::id());
+        });
 
         if ($request->has('service_request_id')) {
             $query->where('service_request_id', $request->service_request_id);
@@ -112,20 +148,19 @@ class MessageController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        // Mark received messages as read
         Message::where('receiver_id', Auth::id())
             ->where('sender_id', $user->id)
             ->whereIn('id', $messages->pluck('id'))
             ->update(['is_read' => true]);
 
         $html = '';
-        foreach ($messages as $message) {
-            $html .= view('messages.partials.message', compact('message'))->render();
+        foreach ($messages as $msg) {
+            $html .= view('messages.partials.message', ['message' => $msg])->render();
         }
 
         return response()->json([
             'messages' => $messages,
-            'html' => $html
+            'html'     => $html,
         ]);
     }
 
@@ -145,5 +180,14 @@ class MessageController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function adminIndex(Request $request)
+    {
+        $messages = Message::with(['sender', 'receiver', 'serviceRequest'])
+            ->latest()
+            ->paginate(20);
+
+        return response()->json($messages);
     }
 }
